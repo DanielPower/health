@@ -6,11 +6,11 @@ Personal health-data monorepo. Each product is independently deployable and shar
 
 - `apps/web` — SvelteKit UI and its server-side API routes.
 - `services/scale-collector` — Python BLE collector for the Etekcity ESF-551.
-- `infra/postgres/init` — initial database schema. Add versioned migrations here (or introduce a dedicated migration tool) as services evolve.
+- `infra/database` — centralized, language-neutral SQL migrations applied by the one-shot `migrate` service before applications start.
 
 ## Development
 
-Copy `.env.example` to `.env`, set a password, then run `docker compose up --build` on a Linux host with BlueZ and a Bluetooth adapter. The UI is at `http://localhost:3000`.
+Copy `.env.example` to `.env`, set a password, then run `docker-compose pull && docker-compose up -d` on a Linux host with BlueZ and a Bluetooth adapter. The UI is at `http://localhost:3000`. The `migrate` service applies pending database migrations and exits before the applications start.
 
 JavaScript uses pnpm, oxfmt, and oxlint. Python uses uv and Ruff:
 

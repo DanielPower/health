@@ -1,3 +1,4 @@
+-- migrate:up
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE scale_devices (
@@ -21,3 +22,7 @@ CREATE TABLE scale_measurements (
 );
 
 CREATE INDEX scale_measurements_measured_at_idx ON scale_measurements (measured_at DESC);
+
+-- migrate:down
+DROP TABLE scale_measurements;
+DROP TABLE scale_devices;

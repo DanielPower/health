@@ -27,6 +27,9 @@ jobs:
           - name: scale-collector
             image: health/scale-collector
             dockerfile: services/scale-collector/Dockerfile
+          - name: migrate
+            image: health/migrate
+            dockerfile: infra/database/Dockerfile
     steps:
       - name: Check out source
         uses: actions/checkout@v4
