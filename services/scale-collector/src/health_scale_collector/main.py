@@ -82,6 +82,16 @@ class Collector:
         await self.start_collection(candidate.address)
         return candidate
 
+    async def paired_devices(self) -> list[ScaleCandidate]:
+        assert self.pool
+        rows = await self.pool.fetch(
+            "SELECT bluetooth_address, name, model FROM scale_devices ORDER BY paired_at"
+        )
+        return [
+            ScaleCandidate(address=row["bluetooth_address"], name=row["name"], model=row["model"])
+            for row in rows
+        ]
+
     async def start_collection(self, address: str) -> None:
         if address in self.scales:
             return
@@ -130,8 +140,18 @@ async def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/v1/scales")
+async def list_scales() -> dict[str, list[ScaleCandidate]]:
+    return {"devices": await collector.paired_devices()}
+
+
 @app.post("/v1/scales/scan")
 async def scan_scales() -> dict[str, list[ScaleCandidate]]:
+    if collector.scales:
+        raise HTTPException(
+            status_code=409,
+            detail="A paired scale is already being monitored; scanning again is not needed.",
+        )
     try:
         return {"devices": await collector.scan()}
     except Exception as error:

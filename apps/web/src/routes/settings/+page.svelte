@@ -1,5 +1,8 @@
 <script lang="ts">
   type Device = { address: string; name: string; model: string };
+  let { data } = $props();
+  let pairedDuringSession = $state(false);
+  let isPaired = $derived(data.pairedDevices.length > 0 || pairedDuringSession);
   let devices = $state<Device[]>([]);
   let status = $state('');
   let loading = $state(false);
@@ -21,6 +24,8 @@
       const response = await fetch('/api/settings/scale/pair', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(device) });
       const body = await response.json();
       if (!response.ok) throw new Error(body.detail ?? 'Pairing failed');
+      pairedDuringSession = true;
+      devices = [];
       status = `${body.name} is paired. Measurements will appear on History.`;
     } catch (error) { status = error instanceof Error ? error.message : 'Pairing failed'; }
     finally { loading = false; }
@@ -33,8 +38,15 @@
   <p class="eyebrow">Scale</p><h1>Settings</h1>
   <div class="card">
     <h2>Pair an Etekcity scale</h2>
-    <p>Keep the scale nearby and step on it before scanning. Bluetooth access is handled by the collector running on the Linux host.</p>
-    <button onclick={scan} disabled={loading}>{loading ? 'Working…' : 'Scan for scale'}</button>
+    {#if isPaired}
+      <p>Your paired scale is being monitored for weigh-ins.</p>
+      {#each data.pairedDevices as device}
+        <div class="device"><span><strong>{device.name}</strong><small>{device.bluetooth_address} · {device.model}</small></span><span>Paired</span></div>
+      {/each}
+    {:else}
+      <p>Keep the scale nearby and step on it before scanning. Bluetooth access is handled by the collector running on the Linux host.</p>
+      <button onclick={scan} disabled={loading}>{loading ? 'Working…' : 'Scan for scale'}</button>
+    {/if}
     {#if status}<p aria-live="polite">{status}</p>{/if}
     {#each devices as device}
       <div class="device"><span><strong>{device.name}</strong><small>{device.address} · {device.model}</small></span><button onclick={() => pair(device)} disabled={loading}>Pair</button></div>
