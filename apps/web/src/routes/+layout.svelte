@@ -6,13 +6,13 @@
 
 <div class="page-shell">
   <header>
-    <p class="top-note">★ WELCOME TO THE HEALTH ZONE ★</p>
+    <p class="top-note">★ STOP BEING FAT ★</p>
     <div class="banner">
       <span class="star">✦</span>
-      <a href="/">DANIEL'S<br /><em>HEALTH</em><br />PAGE</a>
+      <a href="/">DAN IS FAT</a>
       <span class="star">✦</span>
     </div>
-    <div class="ticker"><span>+++ LIVE SCALE DATA FROM THE INFORMATION SUPERHIGHWAY +++</span></div>
+    <div class="ticker"><span>+++ LIVE FROM THE HEALTHFORMATION SUPER HUB +++</span></div>
     <nav aria-label="Main navigation">
       <a href="/">📈 WEIGHT HISTORY</a>
       <a href="/settings">⚙ SCALE CONTROL PANEL</a>
@@ -20,7 +20,7 @@
   </header>
   <main>{@render children()}</main>
   <footer>
-    <span>Best viewed with a healthy body &amp; a 56k modem</span>
+    <span>Best viewed in Internet Explorer 6</span>
     <span class="counter">VISITORS: 000042</span>
   </footer>
 </div>

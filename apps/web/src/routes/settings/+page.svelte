@@ -53,7 +53,7 @@
 <svelte:head><title>Settings · Health</title></svelte:head>
 
 <section>
-  <p class="eyebrow">★ CONFIGURATION TERMINAL ★</p><h1>SCALE CONTROL PANEL</h1>
+  <h1>SCALE CONTROL PANEL</h1>
   <div class="card">
     <h2>PAIR AN ETEKCITY SCALE</h2>
     {#if isPaired}

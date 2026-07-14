@@ -17,8 +17,7 @@
 <svelte:head><title>Scale history · Health</title></svelte:head>
 
 <section>
-  <p class="eyebrow">★ ETEKCITY SCALE TRANSMISSION ★</p>
-  <h1>WEIGHT HISTORY ARCHIVES</h1>
+  <h1>WEIGHT HISTORY</h1>
   {#if data.measurements.length === 0}
     <div class="empty"><p>No measurements yet.</p><a href="/settings">Pair your scale</a> to begin collecting.</div>
   {:else}
