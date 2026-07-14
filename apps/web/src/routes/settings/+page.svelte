@@ -3,6 +3,8 @@
   let { data } = $props();
   let pairedDuringSession = $state(false);
   let isPaired = $derived(data.pairedDevices.length > 0 || pairedDuringSession);
+  let updatingUnit = $state(false);
+  let unitOverrides = $state<Record<string, 'kg' | 'lb'>>({});
   let devices = $state<Device[]>([]);
   let status = $state('');
   let loading = $state(false);
@@ -30,6 +32,22 @@
     } catch (error) { status = error instanceof Error ? error.message : 'Pairing failed'; }
     finally { loading = false; }
   }
+
+  async function setDisplayUnit(address: string, displayUnit: 'kg' | 'lb') {
+    updatingUnit = true;
+    try {
+      const response = await fetch(`/api/settings/scale/${encodeURIComponent(address)}/display-unit`, {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ display_unit: displayUnit }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.detail ?? 'Could not update display unit');
+      unitOverrides[address] = displayUnit;
+      status = `Scale display set to ${displayUnit === 'kg' ? 'kilograms' : 'pounds'}.`;
+    } catch (error) { status = error instanceof Error ? error.message : 'Could not update display unit'; }
+    finally { updatingUnit = false; }
+  }
 </script>
 
 <svelte:head><title>Settings · Health</title></svelte:head>
@@ -42,6 +60,11 @@
       <p>Your paired scale is being monitored for weigh-ins.</p>
       {#each data.pairedDevices as device}
         <div class="device"><span><strong>{device.name}</strong><small>{device.bluetooth_address} · {device.model}</small></span><span>Paired</span></div>
+        <fieldset disabled={updatingUnit}>
+          <legend>Scale display unit</legend>
+          <button class:active={(unitOverrides[device.bluetooth_address] ?? device.display_unit) === 'kg'} onclick={() => setDisplayUnit(device.bluetooth_address, 'kg')}>kg</button>
+          <button class:active={(unitOverrides[device.bluetooth_address] ?? device.display_unit) === 'lb'} onclick={() => setDisplayUnit(device.bluetooth_address, 'lb')}>lbs</button>
+        </fieldset>
       {/each}
     {:else}
       <p>Keep the scale nearby and step on it before scanning. Bluetooth access is handled by the collector running on the Linux host.</p>
@@ -55,5 +78,5 @@
 </section>
 
 <style>
-  h1 { margin-top: .1rem; }.eyebrow { margin: 0; color:#0f766e; font-weight:700; text-transform:uppercase; font-size:.8rem; letter-spacing:.08em; }.card { max-width: 620px; background:#fff; border:1px solid #e2e8f0; padding:1.5rem; border-radius:.75rem; }.card p { color:#475569; line-height:1.5; }button { background:#0f766e; color:#fff; border:0; padding:.65rem .9rem; border-radius:.4rem; font:inherit; cursor:pointer; }button:disabled { opacity:.6; cursor:wait; }.device { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1rem; padding-top:1rem; border-top:1px solid #e2e8f0; }.device small { display:block; color:#64748b; margin-top:.2rem; }
+  h1 { margin-top: .1rem; }.eyebrow { margin: 0; color:#0f766e; font-weight:700; text-transform:uppercase; font-size:.8rem; letter-spacing:.08em; }.card { max-width: 620px; background:#fff; border:1px solid #e2e8f0; padding:1.5rem; border-radius:.75rem; }.card p { color:#475569; line-height:1.5; }button { background:#0f766e; color:#fff; border:0; padding:.65rem .9rem; border-radius:.4rem; font:inherit; cursor:pointer; }button:disabled { opacity:.6; cursor:wait; }.device { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1rem; padding-top:1rem; border-top:1px solid #e2e8f0; }.device small { display:block; color:#64748b; margin-top:.2rem; }fieldset { display:flex; gap:.5rem; border:0; padding:1rem 0 0; }legend { color:#64748b; font-size:.9rem; margin-bottom:.5rem; }fieldset button { background:#e2e8f0; color:#172033; }fieldset button.active { background:#0f766e; color:white; }
 </style>

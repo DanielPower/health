@@ -3,6 +3,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from typing import Literal
 
 import asyncpg
 from bleak import BleakScanner
@@ -11,6 +12,7 @@ from etekcity_esf551_ble import (
     WEIGHT_KEY,
     ESF551Scale,
     ScaleData,
+    WeightUnit,
     detect_model,
 )
 from fastapi import FastAPI, HTTPException
@@ -23,6 +25,10 @@ class ScaleCandidate(BaseModel):
     address: str
     name: str
     model: str
+
+
+class DisplayUnitUpdate(BaseModel):
+    display_unit: Literal["kg", "lb"]
 
 
 class Collector:
@@ -92,6 +98,18 @@ class Collector:
             for row in rows
         ]
 
+    async def set_display_unit(self, address: str, display_unit: Literal["kg", "lb"]) -> None:
+        assert self.pool
+        updated = await self.pool.execute(
+            "UPDATE scale_devices SET display_unit = $2 WHERE bluetooth_address = $1",
+            address,
+            display_unit,
+        )
+        if updated == "UPDATE 0":
+            raise ValueError("Scale is not paired")
+        if scale := self.scales.get(address):
+            scale.display_unit = WeightUnit.KG if display_unit == "kg" else WeightUnit.LB
+
     async def start_collection(self, address: str) -> None:
         if address in self.scales:
             return
@@ -99,7 +117,15 @@ class Collector:
         def measurement_callback(data: ScaleData) -> None:
             asyncio.create_task(self.save_measurement(data))
 
-        scale = ESF551Scale(address, measurement_callback)
+        assert self.pool
+        display_unit = await self.pool.fetchval(
+            "SELECT display_unit FROM scale_devices WHERE bluetooth_address = $1", address
+        )
+        scale = ESF551Scale(
+            address,
+            measurement_callback,
+            WeightUnit.KG if display_unit == "kg" else WeightUnit.LB,
+        )
         self.scales[address] = scale
         await scale.async_start()
 
@@ -165,3 +191,12 @@ async def pair_scale(candidate: ScaleCandidate) -> ScaleCandidate:
         return await collector.pair(candidate)
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
+
+
+@app.put("/v1/scales/{address}/display-unit")
+async def set_display_unit(address: str, update: DisplayUnitUpdate) -> dict[str, str]:
+    try:
+        await collector.set_display_unit(address, update.display_unit)
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    return {"display_unit": update.display_unit}

@@ -5,7 +5,8 @@ export const load = async () => {
     bluetooth_address: string;
     name: string;
     model: string;
-  }>("SELECT bluetooth_address, name, model FROM scale_devices ORDER BY paired_at");
+    display_unit: 'kg' | 'lb';
+  }>("SELECT bluetooth_address, name, model, display_unit FROM scale_devices ORDER BY paired_at");
 
   return { pairedDevices: result.rows };
 };
