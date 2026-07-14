@@ -6,6 +6,7 @@ Personal health-data monorepo. Each product is independently deployable and shar
 
 - `apps/web` — SvelteKit UI and its server-side API routes.
 - `services/scale-collector` — Python BLE collector for the Etekcity ESF-551.
+- `services/discord-bot` — Discord announcement bot for new lowest weights.
 - `infra/database` — centralized, language-neutral SQL migrations applied by the one-shot `migrate` service before applications start.
 
 ## Development

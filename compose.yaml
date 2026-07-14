@@ -38,6 +38,16 @@ services:
     # after verifying the adapter and host permissions for your hardware.
     privileged: true
 
+  discord-bot:
+    image: ghcr.io/danielpower/health/discord-bot:latest
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-health}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-health}
+      DISCORD_TOKEN: ${DISCORD_TOKEN:?Set DISCORD_TOKEN in .env}
+      CHANNEL_ID: ${CHANNEL_ID:?Set CHANNEL_ID in .env}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   web:
     image: ghcr.io/danielpower/health/web:latest
     environment:

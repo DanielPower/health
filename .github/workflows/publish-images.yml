@@ -30,6 +30,9 @@ jobs:
           - name: migrate
             image: health/migrate
             dockerfile: infra/database/Dockerfile
+          - name: discord-bot
+            image: health/discord-bot
+            dockerfile: services/discord-bot/Dockerfile
     steps:
       - name: Check out source
         uses: actions/checkout@v4
