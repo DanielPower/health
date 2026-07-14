@@ -22,10 +22,10 @@ jobs:
       matrix:
         include:
           - name: web
-            image: health-web
+            image: health/web
             dockerfile: apps/web/Dockerfile
           - name: scale-collector
-            image: health-scale-collector
+            image: health/scale-collector
             dockerfile: services/scale-collector/Dockerfile
     steps:
       - name: Check out source

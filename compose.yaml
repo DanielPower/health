@@ -15,9 +15,7 @@ services:
       retries: 10
 
   collector:
-    build:
-      context: .
-      dockerfile: services/scale-collector/Dockerfile
+    image: ghcr.io/danielpower/health/scale-collector:latest
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-health}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-health}
       COLLECTOR_HOST: 0.0.0.0
@@ -32,9 +30,7 @@ services:
     privileged: true
 
   web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
+    image: ghcr.io/danielpower/health/web:latest
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-health}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-health}
       COLLECTOR_URL: http://collector:8000
