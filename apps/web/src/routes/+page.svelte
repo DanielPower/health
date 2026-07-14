@@ -1,16 +1,20 @@
 <script lang="ts">
   let { data } = $props();
   const date = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  const displayedWeight = (measurement: (typeof data.measurements)[number]) =>
+    Number(measurement.weight_kg) * (measurement.weight_display_unit === 'lb' ? 2.2046226218 : 1);
+  const unitLabel = (measurement: (typeof data.measurements)[number]) =>
+    measurement.weight_display_unit === 'lb' ? 'lbs' : 'kg';
   const chart = $derived.by(() => {
     const measurements = [...data.measurements].reverse();
-    const weights = measurements.map((measurement) => Number(measurement.weight_kg));
+    const weights = measurements.map(displayedWeight);
     const minimum = Math.min(...weights);
     const maximum = Math.max(...weights);
     const range = maximum - minimum || 1;
     const path = measurements
       .map((measurement, index) => {
         const x = measurements.length === 1 ? 50 : (index / (measurements.length - 1)) * 100;
-        const y = 46 - ((Number(measurement.weight_kg) - minimum) / range) * 42;
+        const y = 46 - ((displayedWeight(measurement) - minimum) / range) * 42;
         return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
       })
       .join(' ');
@@ -27,21 +31,19 @@
   {#if data.measurements.length === 0}
     <div class="empty"><p>No measurements yet.</p><a href="/settings">Pair your scale</a> to begin collecting.</div>
   {:else}
-    {#if data.measurements.length > 1}
-      <section class="chart" aria-label="Weight trend">
-        <div class="chart-heading"><h2>Weight trend</h2><span>{chart.minimum.toFixed(2)}–{chart.maximum.toFixed(2)} kg</span></div>
-        <svg viewBox="0 0 100 50" preserveAspectRatio="none" role="img" aria-label="Weight trend over time">
-          <line x1="0" y1="46" x2="100" y2="46" />
-          <path d={chart.path} />
-        </svg>
-      </section>
-    {/if}
+    <section class="chart" aria-label="Weight trend">
+      <div class="chart-heading"><h2>Weight trend</h2><span>{chart.minimum.toFixed(2)}–{chart.maximum.toFixed(2)} {unitLabel(data.measurements[0])}</span></div>
+      <svg viewBox="0 0 100 50" preserveAspectRatio="none" role="img" aria-label="Weight trend over time">
+        <line x1="0" y1="46" x2="100" y2="46" />
+        <path d={chart.path} />
+      </svg>
+    </section>
     <div class="table-wrap"><table>
       <thead><tr><th>When</th><th>Weight</th><th>Impedance</th><th>Device</th></tr></thead>
       <tbody>{#each data.measurements as measurement}
         <tr>
           <td>{date.format(new Date(measurement.measured_at))}</td>
-          <td>{Number(measurement.weight_kg).toFixed(2)} kg</td>
+          <td>{displayedWeight(measurement).toFixed(2)} {unitLabel(measurement)}</td>
           <td>{measurement.impedance_ohms ? `${measurement.impedance_ohms} Ω` : '—'}</td>
           <td>{measurement.device_name}</td>
         </tr>

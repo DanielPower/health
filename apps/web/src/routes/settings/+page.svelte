@@ -44,7 +44,7 @@
       const body = await response.json();
       if (!response.ok) throw new Error(body.detail ?? 'Could not update display unit');
       unitOverrides[address] = displayUnit;
-      status = `Scale display set to ${displayUnit === 'kg' ? 'kilograms' : 'pounds'}.`;
+      status = `Weight display set to ${displayUnit === 'kg' ? 'kilograms' : 'pounds'}.`;
     } catch (error) { status = error instanceof Error ? error.message : 'Could not update display unit'; }
     finally { updatingUnit = false; }
   }
@@ -61,9 +61,9 @@
       {#each data.pairedDevices as device}
         <div class="device"><span><strong>{device.name}</strong><small>{device.bluetooth_address} · {device.model}</small></span><span>Paired</span></div>
         <fieldset disabled={updatingUnit}>
-          <legend>Scale display unit</legend>
-          <button class:active={(unitOverrides[device.bluetooth_address] ?? device.display_unit) === 'kg'} onclick={() => setDisplayUnit(device.bluetooth_address, 'kg')}>kg</button>
-          <button class:active={(unitOverrides[device.bluetooth_address] ?? device.display_unit) === 'lb'} onclick={() => setDisplayUnit(device.bluetooth_address, 'lb')}>lbs</button>
+          <legend>Weight display unit</legend>
+          <button class:active={(unitOverrides[device.bluetooth_address] ?? device.weight_display_unit) === 'kg'} onclick={() => setDisplayUnit(device.bluetooth_address, 'kg')}>kg</button>
+          <button class:active={(unitOverrides[device.bluetooth_address] ?? device.weight_display_unit) === 'lb'} onclick={() => setDisplayUnit(device.bluetooth_address, 'lb')}>lbs</button>
         </fieldset>
       {/each}
     {:else}
