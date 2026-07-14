@@ -15,6 +15,7 @@ let checking = false;
 type Measurement = {
   id: string;
   weight_kg: string;
+  weight_display_unit: 'kg' | 'lb';
   measured_at: Date;
   created_at: Date;
 };
@@ -25,8 +26,9 @@ const checkForNewLow = async () => {
 
   try {
     const pending = await database.query<Measurement>(`
-      SELECT m.id, m.weight_kg, m.measured_at, m.created_at
+      SELECT m.id, m.weight_kg, d.weight_display_unit, m.measured_at, m.created_at
       FROM scale_measurements m
+      JOIN scale_devices d ON d.id = m.scale_device_id
       LEFT JOIN discord_weight_notifications n ON n.measurement_id = m.id
       WHERE n.measurement_id IS NULL
       ORDER BY m.created_at
@@ -47,7 +49,10 @@ const checkForNewLow = async () => {
       if (!channel?.isSendable()) {
         throw new Error(`CHANNEL_ID ${channelId} is not a sendable text channel`);
       }
-      await channel.send(`📉 **New lowest weight achieved:** ${Number(measurement.weight_kg).toFixed(2)} kg!`);
+      const displayedWeight =
+        Number(measurement.weight_kg) * (measurement.weight_display_unit === 'lb' ? 2.2046226218 : 1);
+      const unit = measurement.weight_display_unit === 'lb' ? 'lbs' : 'kg';
+      await channel.send(`📉 **New lowest weight achieved:** ${displayedWeight.toFixed(2)} ${unit}!`);
     }
 
     await database.query(
