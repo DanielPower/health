@@ -29,6 +29,7 @@
     <div class="ticker"><span>+++ LIVE FROM THE HEALTHFORMATION SUPER HUB +++</span></div>
     <nav aria-label="Main navigation">
       <a class:active={page.url.pathname === '/'} href="/">📈 WEIGHT HISTORY</a>
+      <a class:active={page.url.pathname === '/calories'} href="/calories">🍕 CALORIE TRACKER</a>
       <a class:active={page.url.pathname === '/settings'} href="/settings">⚙ SCALE CONTROL PANEL</a>
     </nav>
   </header>
