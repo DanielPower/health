@@ -40,6 +40,6 @@
 </section>
 
 <style>
-  h1 { margin:.2rem 0 1rem; color:#ffff00; font-family:Impact, fantasy; letter-spacing:.06em; text-shadow:2px 2px #ff00ff; }.eyebrow { margin:0; color:#00ff00; font-weight:bold; text-align:center; font-family:"Courier New", monospace; }
+  h1 { margin:.2rem 0 1rem; color:#ffff00; font-family:Impact, fantasy; letter-spacing:.06em; text-shadow:2px 2px #ff00ff; }
   .empty, .table-wrap, .chart { background:#000080; border:4px ridge #00ffff; padding:1rem; box-shadow:5px 5px #310059; }.empty { color:#fff; text-align:center; }.empty a { color:#ffff00; font-weight:bold; } table { width:100%; border-collapse:separate; border-spacing:2px; font-family:"Courier New", monospace; } th, td { text-align:left; padding:.65rem .5rem; } th { color:#000; background:#00ffff; font-size:.75rem; text-transform:uppercase; } td { color:#fff; background:#10106d; border:1px dotted #ff00ff; } .chart { margin-bottom:1rem; }.chart-heading { display:flex; justify-content:space-between; align-items:baseline; color:#ffff00; }.chart h2 { margin:0; font-size:1.05rem; }.chart-heading span { color:#00ff00; font-size:.75rem; }
 </style>

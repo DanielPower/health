@@ -56,7 +56,6 @@
   .top-note { margin: 0; text-align: center; color: #00ffff; font-family: Impact, sans-serif; letter-spacing: .15em; font-size: .75rem; animation: blink 1s steps(2, start) infinite; }
   .banner { display:flex; align-items:center; justify-content:center; gap:2.5rem; padding: .75rem; text-align:center; border: 4px outset #ff00ff; background: linear-gradient(90deg, #1300a8, #4300c4, #1300a8); }
   .banner a { color:#fff; font-family: Impact, fantasy; font-size: clamp(2rem, 7vw, 4rem); line-height:.72; letter-spacing:.08em; text-decoration:none; text-shadow: 3px 3px #ff00ff, -2px -2px #00ffff; }
-  .banner em { color:#ffff00; font-style:normal; font-size:.65em; }
   .star { color:#ffff00; font-size:2.5rem; text-shadow:0 0 10px #00ffff; animation: spin 3s linear infinite; }
   .ticker { overflow:hidden; white-space:nowrap; border:3px inset #00ffff; margin-top:.6rem; color:#00ff00; background:#000; font-family:"Courier New", monospace; font-weight:bold; }
   .ticker span { display:inline-block; padding-left:100%; animation: ticker 18s linear infinite; }
