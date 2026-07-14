@@ -1,5 +1,19 @@
 <script lang="ts">
+  import { page } from '$app/state';
+  import { onMount } from 'svelte';
+
   let { children } = $props();
+  let visits = $state<number | null>(null);
+
+  onMount(async () => {
+    try {
+      const response = await fetch('/api/visits', { method: 'POST' });
+      const body = await response.json();
+      if (response.ok) visits = Number(body.count);
+    } catch {
+      // The decorative counter should never prevent the page from working.
+    }
+  });
 </script>
 
 <svelte:head><title>Health</title></svelte:head>
@@ -14,14 +28,14 @@
     </div>
     <div class="ticker"><span>+++ LIVE FROM THE HEALTHFORMATION SUPER HUB +++</span></div>
     <nav aria-label="Main navigation">
-      <a href="/">📈 WEIGHT HISTORY</a>
-      <a href="/settings">⚙ SCALE CONTROL PANEL</a>
+      <a class:active={page.url.pathname === '/'} href="/">📈 WEIGHT HISTORY</a>
+      <a class:active={page.url.pathname === '/settings'} href="/settings">⚙ SCALE CONTROL PANEL</a>
     </nav>
   </header>
   <main>{@render children()}</main>
   <footer>
     <span>Best viewed in Internet Explorer 6</span>
-    <span class="counter">VISITORS: 000042</span>
+    <span class="counter">VISITORS: {visits === null ? 'LOADING…' : String(visits).padStart(6, '0')}</span>
   </footer>
 </div>
 
@@ -49,6 +63,7 @@
   nav { display:flex; flex-wrap:wrap; justify-content:center; gap:.6rem; padding-top:.85rem; }
   nav a { color:#fff; background:#e600a9; border:3px outset #ff8eea; padding:.45rem .7rem; font-weight:bold; font-size:.78rem; text-decoration:none; text-shadow:1px 1px #000; }
   nav a:hover { background:#00a8a8; color:#ffff00; }
+  nav a.active { background:#00a8a8; border-style:inset; border-color:#00ffff; color:#ffff00; transform:translate(1px, 1px); }
   footer { display:flex; justify-content:space-between; gap:1rem; color:#00ffff; font-size:.75rem; border-top:3px dashed #ff00ff; text-align:center; }
   .counter { color:#00ff00; background:#000; border:2px inset #777; padding:.2rem .35rem; font-family:"Courier New", monospace; }
   @keyframes ticker { to { transform:translateX(-100%); } }
