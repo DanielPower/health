@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.pnpm-store/
+.svelte-kit/
+build/
+dist/
+__pycache__/
+*.py[cod]
+.ruff_cache/
+.venv/
+.python-version
+postgres-data/
+

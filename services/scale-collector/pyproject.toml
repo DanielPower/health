@@ -1,0 +1,15 @@
+[project]
+name = "health-scale-collector"
+version = "0.1.0"
+description = "BLE measurement collector for health services"
+requires-python = ">=3.11"
+dependencies = [
+  "asyncpg>=0.30.0",
+  "bleak>=2.0.0,<4.0.0",
+  "etekcity-esf551-ble>=0.7.0",
+  "fastapi>=0.116.0",
+  "uvicorn[standard]>=0.35.0"
+]
+
+[tool.uv]
+package = false

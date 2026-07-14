@@ -1,0 +1,7 @@
+node_modules
+.svelte-kit
+.venv
+.pnpm-store
+build
+dist
+postgres-data

@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-health}
+      POSTGRES_USER: ${POSTGRES_USER:-health}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  collector:
+    build:
+      context: .
+      dockerfile: services/scale-collector/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-health}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-health}
+      COLLECTOR_HOST: 0.0.0.0
+      COLLECTOR_PORT: 8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - /var/run/dbus:/var/run/dbus:ro
+    # BLE requires a Linux host's BlueZ service. Start privileged; reduce this
+    # after verifying the adapter and host permissions for your hardware.
+    privileged: true
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-health}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-health}
+      COLLECTOR_URL: http://collector:8000
+      ORIGIN: ${ORIGIN:-http://localhost:3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres-data:

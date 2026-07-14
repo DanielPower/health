@@ -1,0 +1,17 @@
+{
+  "name": "health",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --recursive run build",
+    "check": "pnpm --recursive run check",
+    "dev:web": "pnpm --filter @health/web dev",
+    "format": "oxfmt --write apps/web package.json pnpm-workspace.yaml",
+    "format:check": "oxfmt --check apps/web package.json pnpm-workspace.yaml",
+    "lint": "oxlint apps/web"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.18.0",
+    "oxlint": "^1.14.0"
+  },
+  "packageManager": "pnpm@10.14.0"
+}

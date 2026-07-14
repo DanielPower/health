@@ -1,0 +1,1 @@
+"""Health scale collector service."""
