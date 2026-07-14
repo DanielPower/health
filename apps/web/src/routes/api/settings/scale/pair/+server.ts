@@ -7,5 +7,14 @@ export const POST = async ({ fetch, request }) => {
     headers: { 'content-type': 'application/json' },
     body: await request.text(),
   });
-  return json(await response.json(), { status: response.status });
+  const body = await response.text();
+
+  try {
+    return json(JSON.parse(body), { status: response.status });
+  } catch {
+    return json(
+      { detail: body || `Scale collector returned HTTP ${response.status}` },
+      { status: response.ok ? 502 : response.status },
+    );
+  }
 };

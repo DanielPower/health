@@ -16,7 +16,7 @@ services:
   migrate:
     image: ghcr.io/danielpower/health/migrate:latest
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-health}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-health}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-health}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-health}?sslmode=disable
       DBMATE_SCHEMA_FILE: /tmp/schema.sql
     depends_on:
       postgres:

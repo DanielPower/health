@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -14,6 +15,8 @@ from etekcity_esf551_ble import (
 )
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 class ScaleCandidate(BaseModel):
@@ -129,7 +132,11 @@ async def healthz() -> dict[str, str]:
 
 @app.post("/v1/scales/scan")
 async def scan_scales() -> dict[str, list[ScaleCandidate]]:
-    return {"devices": await collector.scan()}
+    try:
+        return {"devices": await collector.scan()}
+    except Exception as error:
+        logger.exception("Bluetooth scan failed")
+        raise HTTPException(status_code=503, detail="Bluetooth scan is unavailable") from error
 
 
 @app.post("/v1/scales/pair")
