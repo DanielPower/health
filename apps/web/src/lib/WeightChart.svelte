@@ -22,9 +22,9 @@
         datasets: [
           {
             data: points.map((point) => point.weight),
-            borderColor: '#0f766e',
-            backgroundColor: '#0f766e',
-            borderWidth: 2,
+            borderColor: '#ff00ff',
+            backgroundColor: '#00ffff',
+            borderWidth: 3,
             pointRadius: 3,
             pointHoverRadius: 6,
             tension: 0.2,
@@ -44,8 +44,8 @@
           },
         },
         scales: {
-          x: { grid: { display: false }, ticks: { maxTicksLimit: 6 } },
-          y: { ticks: { callback: (value) => `${value} ${unit}` } },
+          x: { grid: { color: '#251a9d' }, ticks: { color: '#00ffff', maxTicksLimit: 6 } },
+          y: { grid: { color: '#251a9d' }, ticks: { color: '#ffff00', callback: (value) => `${value} ${unit}` } },
         },
       },
       });

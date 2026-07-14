@@ -53,9 +53,9 @@
 <svelte:head><title>Settings · Health</title></svelte:head>
 
 <section>
-  <p class="eyebrow">Scale</p><h1>Settings</h1>
+  <p class="eyebrow">★ CONFIGURATION TERMINAL ★</p><h1>SCALE CONTROL PANEL</h1>
   <div class="card">
-    <h2>Pair an Etekcity scale</h2>
+    <h2>PAIR AN ETEKCITY SCALE</h2>
     {#if isPaired}
       <p>Your paired scale is being monitored for weigh-ins.</p>
       {#each data.pairedDevices as device}
@@ -78,5 +78,5 @@
 </section>
 
 <style>
-  h1 { margin-top: .1rem; }.eyebrow { margin: 0; color:#0f766e; font-weight:700; text-transform:uppercase; font-size:.8rem; letter-spacing:.08em; }.card { max-width: 620px; background:#fff; border:1px solid #e2e8f0; padding:1.5rem; border-radius:.75rem; }.card p { color:#475569; line-height:1.5; }button { background:#0f766e; color:#fff; border:0; padding:.65rem .9rem; border-radius:.4rem; font:inherit; cursor:pointer; }button:disabled { opacity:.6; cursor:wait; }.device { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1rem; padding-top:1rem; border-top:1px solid #e2e8f0; }.device small { display:block; color:#64748b; margin-top:.2rem; }fieldset { display:flex; gap:.5rem; border:0; padding:1rem 0 0; }legend { color:#64748b; font-size:.9rem; margin-bottom:.5rem; }fieldset button { background:#e2e8f0; color:#172033; }fieldset button.active { background:#0f766e; color:white; }
+  h1 { margin:.2rem 0 1rem; color:#ffff00; font-family:Impact, fantasy; letter-spacing:.06em; text-shadow:2px 2px #ff00ff; }.eyebrow { margin:0; color:#00ff00; font-weight:bold; text-align:center; font-family:"Courier New", monospace; }.card { max-width:620px; background:#000080; border:4px ridge #00ffff; padding:1rem; box-shadow:5px 5px #310059; }.card h2 { margin-top:0; color:#00ffff; font-family:Impact, fantasy; letter-spacing:.05em; }.card p { color:#fff; line-height:1.5; }button { background:#e600a9; color:#fff; border:3px outset #ff8eea; padding:.55rem .8rem; font:inherit; font-weight:bold; cursor:pointer; text-shadow:1px 1px #000; }button:hover { background:#00a8a8; color:#ffff00; }button:disabled { opacity:.6; cursor:wait; }.device { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1rem; padding-top:1rem; border-top:2px dotted #ff00ff; color:#ffff00; }.device small { display:block; color:#00ffff; margin-top:.2rem; font-family:"Courier New", monospace; }fieldset { display:flex; gap:.5rem; border:2px groove #ff00ff; padding:.7rem; margin-top:1rem; }legend { color:#00ff00; font-weight:bold; }fieldset button { background:#222; border-color:#aaa; }fieldset button.active { background:#00a8a8; color:#ffff00; border-color:#00ffff; }
 </style>
