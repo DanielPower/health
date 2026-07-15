@@ -13,6 +13,8 @@ Personal health-data monorepo. Each product is independently deployable and shar
 
 Copy `.env.example` to `.env`, set a password, then run `docker-compose pull && docker-compose up -d` on a Linux host with BlueZ and a Bluetooth adapter. The UI is at `http://localhost:3000`. The `migrate` service applies pending database migrations and exits before the applications start.
 
+For AI calorie estimates, set `APP_ENCRYPTION_KEY` to a long, random, stable secret before starting the stack. Configure an OpenAI or Anthropic model and its API key in Settings; the API key is encrypted with that secret before it is written to Postgres. Do not rotate the encryption key without first replacing the saved provider API key.
+
 JavaScript uses pnpm, oxfmt, and oxlint. Python uses uv and Ruff:
 
 ```sh

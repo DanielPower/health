@@ -2,7 +2,13 @@
   import { invalidateAll } from '$app/navigation';
 
   type Device = { address: string; name: string; model: string };
-  let { data } = $props();
+  let { data, form } = $props();
+  let aiProvider = $state<'openai' | 'anthropic'>('openai');
+  let aiModel = $state('gpt-4o-mini');
+  $effect(() => {
+    aiProvider = data.aiConfiguration?.provider ?? 'openai';
+    aiModel = data.aiConfiguration?.model ?? (aiProvider === 'openai' ? 'gpt-4o-mini' : 'claude-3-5-haiku-latest');
+  });
   let pairedDuringSession = $state(false);
   let isPaired = $derived(data.pairedDevices.length > 0 || pairedDuringSession);
   let updatingUnit = $state(false);
@@ -94,8 +100,30 @@
       <div class="device"><span><strong>{device.name}</strong><small>{device.address} · {device.model}</small></span><button onclick={() => pair(device)} disabled={loading}>Pair</button></div>
     {/each}
   </div>
+
+  <div class="card ai-card">
+    <h2>AI CALORIE INFERENCE</h2>
+    <p>Describe a meal in the calorie tracker and the selected model will estimate its calories. Your API key is encrypted in the health database and is never exposed again in the browser.</p>
+    <form method="POST" action="?/saveAi" class="ai-form">
+      <label>PROVIDER
+        <select name="provider" bind:value={aiProvider} onchange={() => { aiModel = aiProvider === 'openai' ? 'gpt-4o-mini' : 'claude-3-5-haiku-latest'; }}>
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+        </select>
+      </label>
+      <label>MODEL ID
+        <input name="model" required bind:value={aiModel} />
+      </label>
+      <label>API KEY
+        <input name="api_key" type="password" required={!data.aiConfiguration?.has_api_key} placeholder={data.aiConfiguration?.has_api_key ? 'Leave blank to keep the saved key' : 'Provider API key'} />
+      </label>
+      <button>SAVE AI CONFIG</button>
+    </form>
+    {#if form?.aiError}<p class="error" role="alert">⚠ {form.aiError}</p>{/if}
+    {#if form?.aiSuccess}<p class="success">✓ {form.aiSuccess}</p>{/if}
+  </div>
 </section>
 
 <style>
-  h1 { margin:.2rem 0 1rem; color:#ffff00; font-family:Impact, fantasy; letter-spacing:.06em; text-shadow:2px 2px #ff00ff; }.card { max-width:620px; background:#000080; border:4px ridge #00ffff; padding:1rem; box-shadow:5px 5px #310059; }.card h2 { margin-top:0; color:#00ffff; font-family:Impact, fantasy; letter-spacing:.05em; }.card p { color:#fff; line-height:1.5; }button { background:#e600a9; color:#fff; border:3px outset #ff8eea; padding:.55rem .8rem; font:inherit; font-weight:bold; cursor:pointer; text-shadow:1px 1px #000; }button:hover { background:#00a8a8; color:#ffff00; }button:disabled { opacity:.6; cursor:wait; }.device { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1rem; padding-top:1rem; border-top:2px dotted #ff00ff; color:#ffff00; }.device small { display:block; color:#00ffff; margin-top:.2rem; font-family:"Courier New", monospace; }fieldset { display:flex; gap:.5rem; border:2px groove #ff00ff; padding:.7rem; margin-top:1rem; }legend { color:#00ff00; font-weight:bold; }fieldset button { background:#222; border-color:#aaa; }fieldset button.active { background:#00a8a8; color:#ffff00; border-color:#00ffff; }.forget { margin-top:1rem; background:#5e1b6c; font-size:.75rem; }
+  h1 { margin:.2rem 0 1rem; color:#ffff00; font-family:Impact, fantasy; letter-spacing:.06em; text-shadow:2px 2px #ff00ff; }.card { max-width:620px; background:#000080; border:4px ridge #00ffff; padding:1rem; box-shadow:5px 5px #310059; }.card h2 { margin-top:0; color:#00ffff; font-family:Impact, fantasy; letter-spacing:.05em; }.card p { color:#fff; line-height:1.5; }button { background:#e600a9; color:#fff; border:3px outset #ff8eea; padding:.55rem .8rem; font:inherit; font-weight:bold; cursor:pointer; text-shadow:1px 1px #000; }button:hover { background:#00a8a8; color:#ffff00; }button:disabled { opacity:.6; cursor:wait; }.device { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1rem; padding-top:1rem; border-top:2px dotted #ff00ff; color:#ffff00; }.device small { display:block; color:#00ffff; margin-top:.2rem; font-family:"Courier New", monospace; }fieldset { display:flex; gap:.5rem; border:2px groove #ff00ff; padding:.7rem; margin-top:1rem; }legend { color:#00ff00; font-weight:bold; }fieldset button { background:#222; border-color:#aaa; }fieldset button.active { background:#00a8a8; color:#ffff00; border-color:#00ffff; }.forget { margin-top:1rem; background:#5e1b6c; font-size:.75rem; }.ai-card { margin-top:1rem; }.ai-form { display:grid; gap:.75rem; }.ai-form label { display:grid; gap:.25rem; color:#00ff00; font:bold .75rem "Courier New", monospace; }.ai-form input, .ai-form select { padding:.45rem; color:#000; background:#fff; border:3px inset #aaa; font:inherit; }.error { color:#ffff00; font-weight:bold; }.success { color:#00ff00; font-weight:bold; }
 </style>

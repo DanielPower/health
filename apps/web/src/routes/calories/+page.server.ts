@@ -1,4 +1,5 @@
 import { database } from '$lib/server/database';
+import { estimateMealCalories } from '$lib/server/meal-estimator';
 import { fail, redirect } from '@sveltejs/kit';
 
 const isoDate = /^\d{4}-\d{2}-\d{2}$/;
@@ -34,6 +35,30 @@ export const load = async ({ url }) => {
 };
 
 export const actions = {
+  estimate: async ({ request }) => {
+    const form = await request.formData();
+    const date = form.get('date');
+    const meal = form.get('meal');
+    const description = form.get('description');
+    if (
+      !validDate(date) ||
+      !['breakfast', 'lunch', 'dinner', 'snack'].includes(String(meal)) ||
+      typeof description !== 'string' ||
+      description.trim().length === 0 ||
+      description.length > 200
+    ) {
+      return fail(422, { error: 'Enter a meal and description before requesting an estimate.' });
+    }
+    try {
+      const estimate = await estimateMealCalories(description.trim());
+      return { estimate: { ...estimate, date, meal, description: description.trim() } };
+    } catch (error) {
+      return fail(502, {
+        error: error instanceof Error ? error.message : 'AI calorie estimation failed.',
+      });
+    }
+  },
+
   add: async ({ request }) => {
     const form = await request.formData();
     const date = form.get('date');

@@ -52,6 +52,7 @@ services:
     image: ghcr.io/danielpower/health/web:latest
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-health}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-health}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?Set APP_ENCRYPTION_KEY in .env}
       COLLECTOR_URL: http://collector:8000
       ORIGIN: ${ORIGIN:-http://localhost:3000}
     depends_on:
