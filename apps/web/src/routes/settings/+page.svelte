@@ -6,8 +6,9 @@
   let aiProvider = $state<'openai' | 'anthropic'>('openai');
   let aiModel = $state('gpt-4o-mini');
   $effect(() => {
-    aiProvider = data.aiConfiguration?.provider ?? 'openai';
-    aiModel = data.aiConfiguration?.model ?? (aiProvider === 'openai' ? 'gpt-4o-mini' : 'claude-3-5-haiku-latest');
+    const configuration = data.aiConfiguration;
+    aiProvider = configuration?.provider ?? 'openai';
+    aiModel = configuration?.model ?? 'gpt-4o-mini';
   });
   let pairedDuringSession = $state(false);
   let isPaired = $derived(data.pairedDevices.length > 0 || pairedDuringSession);
@@ -106,7 +107,14 @@
     <p>Describe a meal in the calorie tracker and the selected model will estimate its calories. Your API key is encrypted in the health database and is never exposed again in the browser.</p>
     <form method="POST" action="?/saveAi" class="ai-form">
       <label>PROVIDER
-        <select name="provider" bind:value={aiProvider} onchange={() => { aiModel = aiProvider === 'openai' ? 'gpt-4o-mini' : 'claude-3-5-haiku-latest'; }}>
+        <select
+          name="provider"
+          value={aiProvider}
+          onchange={(event) => {
+            aiProvider = event.currentTarget.value as 'openai' | 'anthropic';
+            aiModel = aiProvider === 'openai' ? 'gpt-4o-mini' : 'claude-3-5-haiku-latest';
+          }}
+        >
           <option value="openai">OpenAI</option>
           <option value="anthropic">Anthropic</option>
         </select>
