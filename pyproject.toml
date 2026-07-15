@@ -1,5 +1,5 @@
 [tool.uv.workspace]
-members = ["services/*"]
+members = ["services/scale-collector"]
 
 [tool.ruff]
 line-length = 100
@@ -11,4 +11,3 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
-

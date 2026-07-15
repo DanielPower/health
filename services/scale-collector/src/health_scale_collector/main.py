@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+from collections.abc import Callable
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Literal
@@ -31,19 +32,34 @@ class DisplayUnitUpdate(BaseModel):
     display_unit: Literal["kg", "lb"]
 
 
+class ScaleConnectionFailureHandler(logging.Handler):
+    def __init__(self, recover: Callable[[], None]) -> None:
+        super().__init__(level=logging.ERROR)
+        self.recover = recover
+
+    def emit(self, record: logging.LogRecord) -> None:
+        if "Could not connect to scale" in record.getMessage():
+            self.recover()
+
+
 class Collector:
     def __init__(self, database_url: str) -> None:
         self.database_url = database_url
         self.pool: asyncpg.Pool | None = None
         self.scales: dict[str, ESF551Scale] = {}
+        self.loop: asyncio.AbstractEventLoop | None = None
+        self.recovery_tasks: dict[str, asyncio.Task[None]] = {}
 
     async def start(self) -> None:
+        self.loop = asyncio.get_running_loop()
         self.pool = await asyncpg.create_pool(self.database_url)
-        rows = await self.pool.fetch("SELECT bluetooth_address FROM scale_devices")
+        rows = await self.pool.fetch("SELECT bluetooth_address FROM scale_devices WHERE is_active")
         for row in rows:
             await self.start_collection(row["bluetooth_address"])
 
     async def stop(self) -> None:
+        for task in self.recovery_tasks.values():
+            task.cancel()
         for scale in self.scales.values():
             await scale.async_stop()
         if self.pool:
@@ -79,7 +95,11 @@ class Collector:
             """
             INSERT INTO scale_devices (bluetooth_address, name, model, last_seen_at)
             VALUES ($1, $2, $3, now())
-            ON CONFLICT (bluetooth_address) DO UPDATE SET name = EXCLUDED.name, last_seen_at = now()
+            ON CONFLICT (bluetooth_address) DO UPDATE SET
+              name = EXCLUDED.name,
+              model = EXCLUDED.model,
+              is_active = true,
+              last_seen_at = now()
             """,
             candidate.address,
             candidate.name,
@@ -91,12 +111,24 @@ class Collector:
     async def paired_devices(self) -> list[ScaleCandidate]:
         assert self.pool
         rows = await self.pool.fetch(
-            "SELECT bluetooth_address, name, model FROM scale_devices ORDER BY paired_at"
+            "SELECT bluetooth_address, name, model "
+            "FROM scale_devices WHERE is_active ORDER BY paired_at"
         )
         return [
             ScaleCandidate(address=row["bluetooth_address"], name=row["name"], model=row["model"])
             for row in rows
         ]
+
+    async def unpair(self, address: str) -> None:
+        assert self.pool
+        updated = await self.pool.execute(
+            "UPDATE scale_devices SET is_active = false WHERE bluetooth_address = $1 AND is_active",
+            address,
+        )
+        if updated == "UPDATE 0":
+            raise ValueError("Scale is not paired")
+        if scale := self.scales.pop(address, None):
+            await scale.async_stop()
 
     def set_display_unit(self, address: str, display_unit: Literal["kg", "lb"]) -> None:
         scale = self.scales.get(address)
@@ -111,17 +143,49 @@ class Collector:
         def measurement_callback(data: ScaleData) -> None:
             asyncio.create_task(self.save_measurement(data))
 
+        def schedule_recovery() -> None:
+            if self.loop:
+                self.loop.call_soon_threadsafe(self.start_recovery, address)
+
         assert self.pool
         display_unit = await self.pool.fetchval(
             "SELECT weight_display_unit FROM scale_devices WHERE bluetooth_address = $1", address
         )
+        scale_logger = logging.getLogger(f"{__name__}.scale.{address}.{id(measurement_callback)}")
+        scale_logger.addHandler(ScaleConnectionFailureHandler(schedule_recovery))
         scale = ESF551Scale(
             address,
             measurement_callback,
             WeightUnit.KG if display_unit == "kg" else WeightUnit.LB,
+            cooldown_seconds=5,
+            logger=scale_logger,
         )
         self.scales[address] = scale
         await scale.async_start()
+
+    def start_recovery(self, address: str) -> None:
+        task = self.recovery_tasks.get(address)
+        if task and not task.done():
+            return
+        self.recovery_tasks[address] = asyncio.create_task(self.recover_collection(address))
+
+    async def recover_collection(self, address: str) -> None:
+        logger.warning("Restarting BLE scanner after failed connection to %s", address)
+        await asyncio.sleep(2)
+        scale = self.scales.pop(address, None)
+        if scale:
+            try:
+                await scale.async_stop()
+            except Exception:
+                logger.exception("Failed to stop stale scanner for %s", address)
+        await asyncio.sleep(1)
+        if self.pool and await self.pool.fetchval(
+            "SELECT is_active FROM scale_devices WHERE bluetooth_address = $1", address
+        ):
+            try:
+                await self.start_collection(address)
+            except Exception:
+                logger.exception("Failed to restart BLE scanner for %s", address)
 
     async def save_measurement(self, data: ScaleData) -> None:
         weight = data.measurements.get(WEIGHT_KEY)
@@ -194,3 +258,12 @@ async def set_display_unit(address: str, update: DisplayUnitUpdate) -> dict[str,
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error)) from error
     return {"display_unit": update.display_unit}
+
+
+@app.delete("/v1/scales/{address}")
+async def unpair_scale(address: str) -> dict[str, str]:
+    try:
+        await collector.unpair(address)
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    return {"status": "unpaired"}

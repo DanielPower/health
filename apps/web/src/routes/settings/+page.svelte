@@ -1,9 +1,12 @@
 <script lang="ts">
+  import { invalidateAll } from '$app/navigation';
+
   type Device = { address: string; name: string; model: string };
   let { data } = $props();
   let pairedDuringSession = $state(false);
   let isPaired = $derived(data.pairedDevices.length > 0 || pairedDuringSession);
   let updatingUnit = $state(false);
+  let forgetting = $state(false);
   let unitOverrides = $state<Record<string, 'kg' | 'lb'>>({});
   let devices = $state<Device[]>([]);
   let status = $state('');
@@ -48,6 +51,21 @@
     } catch (error) { status = error instanceof Error ? error.message : 'Could not update display unit'; }
     finally { updatingUnit = false; }
   }
+
+  async function forgetScale(address: string) {
+    forgetting = true;
+    try {
+      const response = await fetch(`/api/settings/scale/${encodeURIComponent(address)}`, {
+        method: 'DELETE',
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.detail ?? 'Could not forget scale');
+      pairedDuringSession = false;
+      status = 'Scale forgotten. You can now scan and pair it again.';
+      await invalidateAll();
+    } catch (error) { status = error instanceof Error ? error.message : 'Could not forget scale'; }
+    finally { forgetting = false; }
+  }
 </script>
 
 <svelte:head><title>Settings · Health</title></svelte:head>
@@ -65,6 +83,7 @@
           <button class:active={(unitOverrides[device.bluetooth_address] ?? device.weight_display_unit) === 'kg'} onclick={() => setDisplayUnit(device.bluetooth_address, 'kg')}>kg</button>
           <button class:active={(unitOverrides[device.bluetooth_address] ?? device.weight_display_unit) === 'lb'} onclick={() => setDisplayUnit(device.bluetooth_address, 'lb')}>lbs</button>
         </fieldset>
+        <button class="forget" onclick={() => forgetScale(device.bluetooth_address)} disabled={forgetting}>FORGET &amp; PAIR AGAIN</button>
       {/each}
     {:else}
       <p>Keep the scale nearby and step on it before scanning. Bluetooth access is handled by the collector running on the Linux host.</p>
@@ -78,5 +97,5 @@
 </section>
 
 <style>
-  h1 { margin:.2rem 0 1rem; color:#ffff00; font-family:Impact, fantasy; letter-spacing:.06em; text-shadow:2px 2px #ff00ff; }.card { max-width:620px; background:#000080; border:4px ridge #00ffff; padding:1rem; box-shadow:5px 5px #310059; }.card h2 { margin-top:0; color:#00ffff; font-family:Impact, fantasy; letter-spacing:.05em; }.card p { color:#fff; line-height:1.5; }button { background:#e600a9; color:#fff; border:3px outset #ff8eea; padding:.55rem .8rem; font:inherit; font-weight:bold; cursor:pointer; text-shadow:1px 1px #000; }button:hover { background:#00a8a8; color:#ffff00; }button:disabled { opacity:.6; cursor:wait; }.device { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1rem; padding-top:1rem; border-top:2px dotted #ff00ff; color:#ffff00; }.device small { display:block; color:#00ffff; margin-top:.2rem; font-family:"Courier New", monospace; }fieldset { display:flex; gap:.5rem; border:2px groove #ff00ff; padding:.7rem; margin-top:1rem; }legend { color:#00ff00; font-weight:bold; }fieldset button { background:#222; border-color:#aaa; }fieldset button.active { background:#00a8a8; color:#ffff00; border-color:#00ffff; }
+  h1 { margin:.2rem 0 1rem; color:#ffff00; font-family:Impact, fantasy; letter-spacing:.06em; text-shadow:2px 2px #ff00ff; }.card { max-width:620px; background:#000080; border:4px ridge #00ffff; padding:1rem; box-shadow:5px 5px #310059; }.card h2 { margin-top:0; color:#00ffff; font-family:Impact, fantasy; letter-spacing:.05em; }.card p { color:#fff; line-height:1.5; }button { background:#e600a9; color:#fff; border:3px outset #ff8eea; padding:.55rem .8rem; font:inherit; font-weight:bold; cursor:pointer; text-shadow:1px 1px #000; }button:hover { background:#00a8a8; color:#ffff00; }button:disabled { opacity:.6; cursor:wait; }.device { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1rem; padding-top:1rem; border-top:2px dotted #ff00ff; color:#ffff00; }.device small { display:block; color:#00ffff; margin-top:.2rem; font-family:"Courier New", monospace; }fieldset { display:flex; gap:.5rem; border:2px groove #ff00ff; padding:.7rem; margin-top:1rem; }legend { color:#00ff00; font-weight:bold; }fieldset button { background:#222; border-color:#aaa; }fieldset button.active { background:#00a8a8; color:#ffff00; border-color:#00ffff; }.forget { margin-top:1rem; background:#5e1b6c; font-size:.75rem; }
 </style>
