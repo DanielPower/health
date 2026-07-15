@@ -17,7 +17,9 @@ type MealEstimate = {
 const systemPrompt = `Estimate the calories in a meal description. Return JSON only, with integer calories and a short explanation. Estimate a reasonable single serving when portion size is unclear. This is an estimate, not medical advice.`;
 
 const parseEstimate = (content: string): MealEstimate => {
-  const parsed: unknown = JSON.parse(content);
+  const trimmed = content.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const parsed: unknown = JSON.parse(fenced?.[1] ?? trimmed);
   if (!parsed || typeof parsed !== 'object') {
     throw new Error('The AI returned an invalid calorie estimate.');
   }
