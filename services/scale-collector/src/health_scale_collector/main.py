@@ -11,6 +11,7 @@ from bleak import BleakScanner
 from etekcity_esf551_ble import (
     IMPEDANCE_KEY,
     WEIGHT_KEY,
+    BluetoothScanningMode,
     ESF551Scale,
     ScaleData,
     WeightUnit,
@@ -157,6 +158,7 @@ class Collector:
             address,
             measurement_callback,
             WeightUnit.KG if display_unit == "kg" else WeightUnit.LB,
+            scanning_mode=BluetoothScanningMode.PASSIVE,
             cooldown_seconds=5,
             logger=scale_logger,
         )
